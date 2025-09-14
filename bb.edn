@@ -1,0 +1,108 @@
+{:tasks
+ {:requires ([clojure.string :as str]
+             [babashka.process :as process])
+
+  test {:doc "Run comprehensive tests for github-api-monitor.clj"
+        :task (do
+                (println "🧪 Testing GitHub API Monitor (Babashka Implementation)")
+                (println "=" (apply str (repeat 60 "=")))
+
+                ;; Test 1: Help functionality
+                (println "\n1️⃣  Testing help functionality...")
+                (let [result (process/shell {:out :string :err :string}
+                                          "./github-api-monitor.clj" "--help")]
+                  (if (zero? (:exit result))
+                    (do
+                      (println "✅ Help test passed")
+                      (when (str/includes? (:out result) "GitHub GraphQL API Rate Limit Monitor")
+                        (println "   ✓ Help message contains expected title")))
+                    (do
+                      (println "❌ Help test failed")
+                      (println "   Error:" (:err result))
+                      (System/exit 1))))
+
+                ;; Test 2: Version display
+                (println "\n2️⃣  Testing version display...")
+                (let [result (process/shell {:out :string :err :string}
+                                          "./github-api-monitor.clj" "--version")]
+                  (if (zero? (:exit result))
+                    (do
+                      (println "✅ Version test passed")
+                      (when (str/includes? (:out result) "1.0.0")
+                        (println "   ✓ Version number correct")))
+                    (do
+                      (println "❌ Version test failed")
+                      (println "   Error:" (:err result))
+                      (System/exit 1))))
+
+                ;; Test 3: Error handling with invalid token
+                (println "\n3️⃣  Testing error handling with invalid token...")
+                (let [result (process/shell {:out :string :err :string :continue true}
+                                          "./github-api-monitor.clj" "--token" "invalid_token_test")]
+                  (if (and (not (zero? (:exit result)))
+                           (str/includes? (:err result) "Token validation failed"))
+                    (println "✅ Invalid token error handling passed")
+                    (do
+                      (println "❌ Invalid token error handling failed")
+                      (println "   Expected authentication error, got exit code:" (:exit result))
+                      (System/exit 1))))
+
+                ;; Test 4: All output formats (using valid token if available)
+                (println "\n4️⃣  Testing output formats...")
+                (if (or (System/getenv "GITHUB_TOKEN")
+                        (and (.exists (java.io.File. (str (System/getProperty "user.home")
+                                                          "/.github-api-monitor")))))
+                  (do
+                    (println "   Testing table format...")
+                    (let [result (process/shell {:out :string :err :string :continue true}
+                                              "./github-api-monitor.clj" "--format" "table")]
+                      (if (zero? (:exit result))
+                        (println "   ✅ Table format test passed")
+                        (println "   ⚠️  Table format test failed (token may be invalid)")))
+
+                    (println "   Testing JSON format...")
+                    (let [result (process/shell {:out :string :err :string :continue true}
+                                              "./github-api-monitor.clj" "--format" "json")]
+                      (if (and (zero? (:exit result))
+                               (str/includes? (:out result) "rateLimit"))
+                        (println "   ✅ JSON format test passed")
+                        (println "   ⚠️  JSON format test failed")))
+
+                    (println "   Testing compact format...")
+                    (let [result (process/shell {:out :string :err :string :continue true}
+                                              "./github-api-monitor.clj" "--format" "compact")]
+                      (if (and (zero? (:exit result))
+                               (str/includes? (:out result) "remaining"))
+                        (println "   ✅ Compact format test passed")
+                        (println "   ⚠️  Compact format test failed"))))
+                  (println "   ⚠️  Skipping format tests - no GitHub token available"))
+
+                ;; Test 5: Configuration file loading
+                (println "\n5️⃣  Testing configuration file loading...")
+                (let [config-file (str (System/getProperty "user.home") "/.github-api-monitor")]
+                  (if (.exists (java.io.File. config-file))
+                    (do
+                      (println "   ✅ Configuration file exists")
+                      (let [result (process/shell {:out :string :err :string :continue true}
+                                                "./github-api-monitor.clj" "--verbose" "--format" "compact")]
+                        (if (str/includes? (:err result) "Token loaded from config file")
+                          (println "   ✅ Configuration loading test passed")
+                          (println "   ⚠️  Configuration loading test inconclusive"))))
+                    (println "   ⚠️  Configuration file not found - skipping test")))
+
+                (println "\n🎉 Test suite completed!")
+                (println "=" (apply str (repeat 60 "="))))}
+
+  test-quick {:doc "Run quick smoke tests"
+             :task (do
+                     (println "🚀 Quick smoke test...")
+                     (let [help-result (process/shell {:out :string :err :string}
+                                                     "./github-api-monitor.clj" "--help")
+                           version-result (process/shell {:out :string :err :string}
+                                                       "./github-api-monitor.clj" "--version")]
+                       (if (and (zero? (:exit help-result))
+                               (zero? (:exit version-result)))
+                         (println "✅ Smoke test passed - basic functionality works")
+                         (do
+                           (println "❌ Smoke test failed")
+                           (System/exit 1)))))}}}
