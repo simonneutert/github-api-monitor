@@ -57,12 +57,15 @@ Perfect for developers, DevOps engineers, and CI/CD pipelines that need to respe
 **Install Babashka:**
 ```bash
 # macOS (Homebrew)
-brew install babashka/brew/babashka
+brew install borkdude/brew/babashka
 
 # Linux (using installer script)
-curl -s https://raw.githubusercontent.com/babashka/babashka/master/install | sudo bash
+$ curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
+# or
+$ wget -qO install https://raw.githubusercontent.com/babashka/babashka/master/install
+$ chmod +x install
+$ ./install
 
-# Or download binary from: https://github.com/babashka/babashka/releases
 ```
 
 **Install the monitor:**
