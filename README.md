@@ -224,6 +224,7 @@ Store your token to avoid passing it each time:
 
 ```bash
 echo "GITHUB_TOKEN=ghp_your_token_here" > ~/.github-api-monitor
+chmod 600 ~/.github-api-monitor # it's just for your eyes
 
 # Now use without --token flag
 github-api-monitor.sh    # Direct command
