@@ -68,7 +68,19 @@ $ ./install
 
 ```
 
-**Install the monitor:**
+**Install via [bbin](https://github.com/babashka/bbin) (recommended):**
+```bash
+# Install bbin (see https://github.com/babashka/bbin#installation)
+brew install babashka/brew/bbin
+
+# Install github-api-monitor
+bbin install io.github.simonneutert/github-api-monitor
+
+# Run it - installed to ~/.local/bin, no ./ or .clj needed
+github-api-monitor --token ghp_your_token_here
+```
+
+**Manual install:**
 ```bash
 git clone https://github.com/simonneutert/github-api-monitor.git
 cd github-api-monitor
